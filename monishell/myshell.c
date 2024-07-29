@@ -9,6 +9,8 @@
 #define ARGV_NUM 64
 char LineCommand[NUM];
 char* myargv[ARGV_NUM];
+int lastcode = 9;
+int lastsig = 0;
 
 int main()
 {
@@ -28,9 +30,29 @@ LineCommand[strlen(LineCommand)-1] = 0;
 //进行字符串切割
 myargv[0] = strtok(LineCommand," ");
 int i = 1;
+//初始判断执行语句
+if(myargv[0] != NULL && strcmp(myargv[0],"ls") == 0)
+{
+myargv[i++] = "--color=auto";
+}
+
 while(myargv[i++] = strtok(NULL," "));
+//如果是cd命令，不需要创建子进程，让shell自己执行对应的命令，本质就是执行系统接口
+//像这种不需要子进程来执行，而是让shell来执行的命令 -- 叫做内建(内置)命令
+if(myargv[0] != NULL && strcmp(myargv[0],"cd") == 0)
+{
+	chdir(myargv[1]);
+	continue;
+}
 
-
+if(myargv[0] != NULL && strcmp(myargv[0],"echo") == 0)
+{
+ if(strcmp(myargv[1],"$?") == 0)
+{
+printf("Code:%d Sig:%d\n",lastcode,lastsig);
+}
+continue;
+}
 #ifdef DEBUG
  for( i = 0; myargv[i];i++)
  {
@@ -48,8 +70,12 @@ if(id == 0)
 execvp(myargv[0],myargv);
 exit(1);
 }
+int status = 0;
+pid_t ret = waitpid(id,&status,0);
+assert(ret>0);
+lastcode = (status>>8) & 0xff;
+lastsig = status & 0x7f;
 
-waitpid(id,NULL,0);
 
 }
 return 0;
