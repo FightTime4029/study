@@ -33,7 +33,7 @@ int i = 1;
 //初始判断执行语句
 if(myargv[0] != NULL && strcmp(myargv[0],"ls") == 0)
 {
-myargv[i++] = "--color=auto";
+	myargv[i++] = "--color=auto";
 }
 
 while(myargv[i++] = strtok(NULL," "));
