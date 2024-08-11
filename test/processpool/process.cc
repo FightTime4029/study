@@ -8,30 +8,30 @@
 #include <cstdlib>
 #include <ctime>
 #include <cstdio>
-#define MAKE_SEED() srand((unsigned long)time(nullptr) ^ getpid() ^ rand() % 1234)
 #define Process_Sum 3
+#define MAKE_SEED() srand((unsigned long)time(nullptr) ^ getpid() ^ rand() % 1234)
 /////////////////////////////////////////任务列表///////////////////////////
 typedef void (*func)();
 
 void flushTask()
 {
-   std::cout<< getpid() <<' '<<"刷新 任务"<< std::endl;
+    std::cout << getpid() << ' ' << "刷新 任务" << std::endl;
     sleep(1);
 }
 
 void IoTask()
 {
-    std::cout <<getpid() <<' '<< "IO 任务" << std::endl;
+    std::cout << getpid() << ' ' << "IO 任务" << std::endl;
     sleep(1);
 }
 
 void downloadTask()
 {
-    std::cout <<getpid() <<' '<< "下载 任务" << std::endl;
+    std::cout << getpid() << ' ' << "下载 任务" << std::endl;
     sleep(1);
 }
 
-void loadTaskFunc(std::vector<func>* out)
+void loadTaskFunc(std::vector<func> *out)
 {
     assert(out);
     out->push_back(flushTask);
@@ -78,10 +78,10 @@ int recvTask(int readfd)
         return -1;
 }
 
-void create_child_process(std::vector<Sub_EP>& subs,std::vector<func>& funcMap)
+void create_child_process(std::vector<Sub_EP> &subs, std::vector<func> &funcMap)
 {
     // 创建子进程，保存子进程的id和管道通信信道
-    for(int i = 0; i < Process_Sum; i++)
+    for (int i = 0; i < Process_Sum; i++)
     {
         // 创建数组 打开管道文件 保存通信信道  交给子进程 读端
         int fds[2];
@@ -94,15 +94,15 @@ void create_child_process(std::vector<Sub_EP>& subs,std::vector<func>& funcMap)
         {
             close(fds[1]);
             // child 接受commend_code 执行命令
-            while(true)
+            while (true)
             {
                 int command_code = recvTask(fds[0]);
-               
-                 if(command_code >= 0 && command_code < funcMap.size())
+                if (0 <= command_code && command_code < funcMap.size())
                 {
                     funcMap[command_code]();
                 }
-                else if(command_code == -1) break;
+                else if (command_code == -1)
+                    break;
             }
             exit(0);
         }
@@ -112,12 +112,12 @@ void create_child_process(std::vector<Sub_EP>& subs,std::vector<func>& funcMap)
     }
 }
 
-void load_blue_contrl(const std::vector<Sub_EP>& subs, const std::vector<func>& funcMap,int count)
+void load_blue_contrl(const std::vector<Sub_EP> &subs, const std::vector<func> &funcMap, int count)
 {
     int subs_size = subs.size();
     int func_size = funcMap.size();
     // int count = 3; // 0 永远循环
-    bool forever = count == 0 ? true:false;
+    bool forever = count == 0 ? true : false;
     while (true)
     {
         int p_index = rand() % subs_size;
@@ -126,26 +126,26 @@ void load_blue_contrl(const std::vector<Sub_EP>& subs, const std::vector<func>& 
 
         sleep(1);
 
-        if(!forever)
+        if (!forever)
         {
             count--;
-            if(count == 0) break;
+            if (count == 0)
+                break;
         }
     }
 
-    for(int i = 0;i<subs_size ;i++)
-    close(subs[i]._writefd);
+    for (int i = 0; i < subs_size; i++)
+        close(subs[i]._writefd);
 }
 
-void waitprocess(const std::vector<Sub_EP>& subs)
+void waitprocess(const std::vector<Sub_EP> &subs)
 {
-    for(int i = 0;i<subs.size();i++)
+    for (int i = 0; i < subs.size(); i++)
     {
-        pid_t id = waitpid(subs[i]._ID,nullptr,0);
-        std::cout<< "waitprocess sucess ..."<< id<<std::endl;
+        pid_t id = waitpid(subs[i]._ID, nullptr, 0);
+        std::cout << "waitprocess sucess ..." << id << std::endl;
     }
 }
-
 
 int main()
 {
@@ -153,11 +153,12 @@ int main()
     std::vector<Sub_EP> subs;
     std::vector<func> funcMap;
     // 加载任务
-    create_child_process(subs, funcMap);
     loadTaskFunc(&funcMap);
+    //load在创建子进程下面 funcMap里面没有load进去任务 所以不输出任务
+    create_child_process(subs, funcMap);
     // 给子进程分配任务 采用负载均衡
     int count = 3;
-    load_blue_contrl(subs,funcMap,count);
+    load_blue_contrl(subs, funcMap, count);
 
     // 回收子进程
     waitprocess(subs);
