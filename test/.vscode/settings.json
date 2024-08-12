@@ -32,5 +32,6 @@
         "cstring": "cpp",
         "ctime": "cpp",
         "string": "cpp"
-    }
+    },
+    "C_Cpp.errorSquiggles": "disabled"
 }
