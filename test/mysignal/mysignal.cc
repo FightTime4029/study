@@ -39,6 +39,7 @@ int main()
     //将2号信号放入进程PCB中的block信号位图   
     //第二个参数是我们想要阻塞那些或者那个信号
     //第三个参数是输入型参数，它会将未更改前位图的状态写入第三个参数中
+    //屏蔽信号 设置进内核
     sigprocmask(SIG_BLOCK,&block,&oblock);
     int cur = 10;
     // signal(2,handler);
@@ -50,7 +51,8 @@ int main()
         sleep(1);
         if(cur-- == 5)
         {
-        sigprocmask(SIG_SETMASK,&oblock,&block);
+            //将阻塞的信号 解除阻塞 
+        sigprocmask(SIG_SETMASK,&oblock,&block); //一旦对特定信号解除屏蔽，一般OS都要至少立马递达一个信号
         }
     }
 
